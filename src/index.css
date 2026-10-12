@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-bengali-serif: 'Noto Serif Bengali', 'Playfair Display', Georgia, serif;
+    --font-bengali-sans: 'Hind Siliguri', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-bengali-sans);
+    color: #171717;
+    background-color: #FAF8F5;
+  }
+
+  h1, h2, h3, .newspaper-headline {
+    font-family: var(--font-bengali-serif);
+    text-wrap: balance;
+  }
+}
+
+/* Authentic Newspaper hairline divider rules */
+.newspaper-border-t {
+  border-top: 3px double #1f2937;
+}
+
+.newspaper-border-b {
+  border-bottom: 3px double #1f2937;
+}
+
+.newspaper-col-rule {
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Custom newspaper paper texture */
+.paper-pattern {
+  background-color: #FAF8F5;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Drop cap for editorial reading */
+.newspaper-drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-bengali-serif);
+  font-size: 3.5rem;
+  line-height: 0.8;
+  padding-top: 4px;
+  padding-right: 10px;
+  padding-bottom: 2px;
+  color: #C1121F;
+  font-weight: 700;
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1ede6;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7beaf;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a39886;
+}

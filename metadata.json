@@ -1,0 +1,6 @@
+{
+  "name": "The Daily Ittefaq - দৈনিক ইত্তেফাক",
+  "description": "The Daily Ittefaq (দৈনিক ইত্তেফাক) digital newspaper web application featuring live breaking news, national & regional reports, interactive e-paper, business indicators, and editorial opinion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
