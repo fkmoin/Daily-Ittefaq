@@ -5,29 +5,42 @@ import { Language, Poll } from '../types';
 
 interface PollWidgetProps {
   language: Language;
+  poll?: Poll;
+  onVote?: (updated: Poll) => void;
 }
 
-export const PollWidget: React.FC<PollWidgetProps> = ({ language }) => {
-  const [poll, setPoll] = useState<Poll>(INITIAL_POLL);
+export const PollWidget: React.FC<PollWidgetProps> = ({ 
+  language,
+  poll: externalPoll,
+  onVote,
+}) => {
+  const [internalPoll, setInternalPoll] = useState<Poll>(INITIAL_POLL);
+  const poll = externalPoll || internalPoll;
+
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState<boolean>(false);
 
   const handleVote = () => {
     if (!selectedOption || hasVoted) return;
 
-    setPoll((prev) => {
-      const updatedOptions = prev.options.map((opt) => {
-        if (opt.id === selectedOption) {
-          return { ...opt, votes: opt.votes + 1 };
-        }
-        return opt;
-      });
-      return {
-        ...prev,
-        totalVotes: prev.totalVotes + 1,
-        options: updatedOptions,
-      };
+    const updatedOptions = poll.options.map((opt) => {
+      if (opt.id === selectedOption) {
+        return { ...opt, votes: opt.votes + 1 };
+      }
+      return opt;
     });
+
+    const updatedPoll: Poll = {
+      ...poll,
+      totalVotes: poll.totalVotes + 1,
+      options: updatedOptions,
+    };
+
+    if (onVote) {
+      onVote(updatedPoll);
+    } else {
+      setInternalPoll(updatedPoll);
+    }
     setHasVoted(true);
   };
 

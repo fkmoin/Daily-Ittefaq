@@ -10,7 +10,9 @@ import {
   Globe, 
   Share2,
   Calendar,
-  Volume2
+  Volume2,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import { Language, CategoryKey } from '../types';
 import { PRAYER_TIMES, CURRENT_WEATHER } from '../data/newsData';
@@ -24,6 +26,9 @@ interface HeaderProps {
   onOpenBookmarks: () => void;
   onOpenEPaper: () => void;
   savedCount: number;
+  adminEmail: string | null;
+  onOpenAdmin: () => void;
+  onLogoutAdmin: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,6 +40,9 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenBookmarks,
   onOpenEPaper,
   savedCount,
+  adminEmail,
+  onOpenAdmin,
+  onLogoutAdmin,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -101,6 +109,34 @@ export const Header: React.FC<HeaderProps> = ({
               <Globe className="w-3 h-3 text-[#C1121F]" />
               <span>{language === 'bn' ? 'English Edition' : 'বাংলা সংস্করণ'}</span>
             </button>
+
+            {/* Admin Access Indicator / Button */}
+            {adminEmail ? (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={onOpenAdmin}
+                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#C1121F] hover:bg-[#a10e1a] text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-2xs"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{language === 'bn' ? 'অ্যাডমিন ড্যাশবোর্ড' : 'Admin Panel'}</span>
+                </button>
+                <button
+                  onClick={onLogoutAdmin}
+                  title={language === 'bn' ? 'লগআউট' : 'Logout'}
+                  className="p-1 rounded bg-stone-800 hover:bg-rose-900 text-stone-300 hover:text-white transition-colors cursor-pointer text-[10px]"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white transition-colors font-medium border border-stone-700 cursor-pointer text-[11px]"
+              >
+                <Lock className="w-3 h-3 text-amber-400" />
+                <span>{language === 'bn' ? 'বার্তাকক্ষ প্রশাসন' : 'Admin Login'}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -246,6 +282,23 @@ export const Header: React.FC<HeaderProps> = ({
                   {language === 'bn' ? cat.bn : cat.en}
                 </button>
               ))}
+            </div>
+
+            <div className="pt-2 border-t border-stone-800">
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-stone-800 hover:bg-stone-700 text-amber-300 rounded text-xs font-semibold"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#C1121F]" />
+                <span>
+                  {adminEmail
+                    ? (language === 'bn' ? 'অ্যাডমিন ড্যাশবোর্ড' : 'Admin Panel')
+                    : (language === 'bn' ? 'বার্তাকক্ষ প্রশাসন লগইন' : 'Newsroom Admin Login')}
+                </span>
+              </button>
             </div>
           </div>
         )}

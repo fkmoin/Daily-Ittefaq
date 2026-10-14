@@ -108,3 +108,18 @@ export interface ArticleComment {
   comment: string;
   likes: number;
 }
+
+export interface BreakingNewsItem {
+  id: string;
+  textBn: string;
+  textEn: string;
+  timeBn: string;
+  timeEn: string;
+}
+
+export interface AdminUser {
+  email: string;
+  role: 'super_admin' | 'editor';
+  name: string;
+}
+

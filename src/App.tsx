@@ -44,20 +44,29 @@ import {
   Footer 
 } from './components/Footer';
 import { 
-  ARTICLES 
+  AdminLoginModal,
+  AUTHORIZED_ADMIN_EMAIL 
+} from './components/AdminLoginModal';
+import { 
+  AdminPanelModal 
+} from './components/AdminPanelModal';
+import { 
+  ARTICLES,
+  BREAKING_NEWS,
+  MARKET_DATA,
+  INITIAL_POLL 
 } from './data/newsData';
 import { 
   Article, 
   CategoryKey, 
-  Language 
+  Language, 
+  BreakingNewsItem, 
+  MarketTickerItem, 
+  Poll 
 } from './types';
 import { 
   ArrowRight, 
-  ChevronRight, 
-  Bookmark, 
-  Eye, 
-  Clock, 
-  Layers 
+  ChevronRight 
 } from 'lucide-react';
 
 export default function App() {
@@ -67,6 +76,56 @@ export default function App() {
   const [isEPaperOpen, setIsEPaperOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
+
+  // Admin Portal & Security State (Restricted to mdfazlulkabirmoin@gmail.com)
+  const [adminEmail, setAdminEmail] = useState<string | null>(() => {
+    try {
+      const stored = localStorage.getItem('ittefaq_admin_user');
+      return stored && stored.toLowerCase() === AUTHORIZED_ADMIN_EMAIL.toLowerCase() ? stored : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+
+  // Dynamic CMS state persisted in localStorage
+  const [articles, setArticles] = useState<Article[]>(() => {
+    try {
+      const stored = localStorage.getItem('ittefaq_cms_articles');
+      return stored ? JSON.parse(stored) : ARTICLES;
+    } catch {
+      return ARTICLES;
+    }
+  });
+
+  const [breakingNews, setBreakingNews] = useState<BreakingNewsItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('ittefaq_cms_breaking');
+      return stored ? JSON.parse(stored) : BREAKING_NEWS;
+    } catch {
+      return BREAKING_NEWS;
+    }
+  });
+
+  const [marketData, setMarketData] = useState<MarketTickerItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('ittefaq_cms_markets');
+      return stored ? JSON.parse(stored) : MARKET_DATA;
+    } catch {
+      return MARKET_DATA;
+    }
+  });
+
+  const [poll, setPoll] = useState<Poll>(() => {
+    try {
+      const stored = localStorage.getItem('ittefaq_cms_poll');
+      return stored ? JSON.parse(stored) : INITIAL_POLL;
+    } catch {
+      return INITIAL_POLL;
+    }
+  });
+
   const [savedArticleIds, setSavedArticleIds] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem('ittefaq_saved_articles');
@@ -75,6 +134,7 @@ export default function App() {
       return new Set(['lead-national-treaty']);
     }
   });
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Sync saved bookmarks with localStorage
@@ -89,6 +149,83 @@ export default function App() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // CMS update persistence handlers
+  const handleSaveArticles = (updated: Article[]) => {
+    setArticles(updated);
+    try {
+      localStorage.setItem('ittefaq_cms_articles', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+    showToast(language === 'bn' ? 'সংবাদ তালিকা হালনাগাদ করা হয়েছে' : 'Articles updated');
+  };
+
+  const handleSaveBreakingNews = (updated: BreakingNewsItem[]) => {
+    setBreakingNews(updated);
+    try {
+      localStorage.setItem('ittefaq_cms_breaking', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  };
+
+  const handleSaveMarketData = (updated: MarketTickerItem[]) => {
+    setMarketData(updated);
+    try {
+      localStorage.setItem('ittefaq_cms_markets', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  };
+
+  const handleSavePoll = (updated: Poll) => {
+    setPoll(updated);
+    try {
+      localStorage.setItem('ittefaq_cms_poll', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  };
+
+  const handleResetAllData = () => {
+    setArticles(ARTICLES);
+    setBreakingNews(BREAKING_NEWS);
+    setMarketData(MARKET_DATA);
+    setPoll(INITIAL_POLL);
+    try {
+      localStorage.removeItem('ittefaq_cms_articles');
+      localStorage.removeItem('ittefaq_cms_breaking');
+      localStorage.removeItem('ittefaq_cms_markets');
+      localStorage.removeItem('ittefaq_cms_poll');
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+    showToast(language === 'bn' ? 'সকল ডাটা প্রাথমিক অবস্থায় ফিরিয়ে নেওয়া হয়েছে' : 'All CMS data restored to defaults');
+  };
+
+  // Admin authentication handlers
+  const handleAdminLoginSuccess = (email: string) => {
+    setAdminEmail(email);
+    try {
+      localStorage.setItem('ittefaq_admin_user', email);
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+    setIsAdminPanelOpen(true);
+    showToast(language === 'bn' ? 'স্বাগতম প্রধান সম্পাদক! অ্যাডমিন প্যানেল সক্রিয় হয়েছে।' : 'Welcome Chief Editor! Admin portal activated.');
+  };
+
+  const handleAdminLogout = () => {
+    setAdminEmail(null);
+    try {
+      localStorage.removeItem('ittefaq_admin_user');
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+    setIsAdminPanelOpen(false);
+    showToast(language === 'bn' ? 'অ্যাডমিন সেশন সমাপ্ত হয়েছে।' : 'Logged out from admin.');
   };
 
   const handleToggleBookmark = (id: string) => {
@@ -111,33 +248,33 @@ export default function App() {
   };
 
   const handleSelectArticleById = (id: string) => {
-    const art = ARTICLES.find((a) => a.id === id);
+    const art = articles.find((a) => a.id === id);
     if (art) {
       setSelectedArticle(art);
     }
   };
 
   const handleSelectBreaking = (title: string) => {
-    const matched = ARTICLES.find(
+    const matched = articles.find(
       (a) => a.title.includes(title) || a.titleEn.includes(title)
-    ) || ARTICLES[0];
+    ) || articles[0];
     setSelectedArticle(matched);
   };
 
   // Filtered articles when in category view
   const categoryArticles = useMemo(() => {
-    if (activeCategory === 'all') return ARTICLES;
-    return ARTICLES.filter((a) => a.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === 'all') return articles;
+    return articles.filter((a) => a.category === activeCategory);
+  }, [activeCategory, articles]);
 
   const savedArticlesList = useMemo(() => {
-    return ARTICLES.filter((a) => savedArticleIds.has(a.id));
-  }, [savedArticleIds]);
+    return articles.filter((a) => savedArticleIds.has(a.id));
+  }, [savedArticleIds, articles]);
 
   const relatedArticles = useMemo(() => {
     if (!selectedArticle) return [];
-    return ARTICLES.filter((a) => a.id !== selectedArticle.id);
-  }, [selectedArticle]);
+    return articles.filter((a) => a.id !== selectedArticle.id);
+  }, [selectedArticle, articles]);
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col font-sans">
@@ -160,16 +297,29 @@ export default function App() {
         onOpenBookmarks={() => setIsBookmarksOpen(true)}
         onOpenEPaper={() => setIsEPaperOpen(true)}
         savedCount={savedArticleIds.size}
+        adminEmail={adminEmail}
+        onOpenAdmin={() => {
+          if (adminEmail) {
+            setIsAdminPanelOpen(true);
+          } else {
+            setIsAdminLoginOpen(true);
+          }
+        }}
+        onLogoutAdmin={handleAdminLogout}
       />
 
       {/* Breaking News Ticker Strip */}
       <BreakingTicker
         language={language}
         onSelectBreaking={handleSelectBreaking}
+        breakingNews={breakingNews}
       />
 
       {/* Financial & Market Strip */}
-      <MarketStrip language={language} />
+      <MarketStrip 
+        language={language}
+        marketData={marketData} 
+      />
 
       {/* Main Editorial Content Area */}
       <main className="flex-1">
@@ -178,7 +328,7 @@ export default function App() {
           <>
             {/* 3-Tier Front Page Lead Stories */}
             <LeadStoriesSection
-              articles={ARTICLES}
+              articles={articles}
               language={language}
               onSelectArticle={setSelectedArticle}
               onToggleBookmark={handleToggleBookmark}
@@ -187,27 +337,31 @@ export default function App() {
 
             {/* Grassroots 64 Districts Section */}
             <DistrictNewsSection
-              articles={ARTICLES}
+              articles={articles}
               language={language}
               onSelectArticle={setSelectedArticle}
             />
 
             {/* Editorial & Opinion Section (Heritage & Columnists) */}
             <OpinionSection
-              articles={ARTICLES}
+              articles={articles}
               language={language}
               onSelectArticle={setSelectedArticle}
             />
 
             {/* Sports & Live Cricket Section */}
             <SportsWidget
-              articles={ARTICLES}
+              articles={articles}
               language={language}
               onSelectArticle={setSelectedArticle}
             />
 
             {/* Daily Public Opinion Poll */}
-            <PollWidget language={language} />
+            <PollWidget 
+              language={language}
+              poll={poll}
+              onVote={handleSavePoll}
+            />
           </>
         ) : (
           // Dedicated Category View
@@ -308,6 +462,32 @@ export default function App() {
         )}
       </main>
 
+      {/* Dedicated Admin Login Modal (Restricted to mdfazlulkabirmoin@gmail.com) */}
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onLoginSuccess={handleAdminLoginSuccess}
+        language={language}
+      />
+
+      {/* Full Admin Panel / CMS Modal */}
+      <AdminPanelModal
+        isOpen={isAdminPanelOpen}
+        onClose={() => setIsAdminPanelOpen(false)}
+        language={language}
+        articles={articles}
+        onSaveArticles={handleSaveArticles}
+        breakingNews={breakingNews}
+        onSaveBreakingNews={handleSaveBreakingNews}
+        marketData={marketData}
+        onSaveMarketData={handleSaveMarketData}
+        poll={poll}
+        onSavePoll={handleSavePoll}
+        adminEmail={adminEmail || AUTHORIZED_ADMIN_EMAIL}
+        onLogout={handleAdminLogout}
+        onResetAllData={handleResetAllData}
+      />
+
       {/* Newspaper Broadsheet E-Paper Modal */}
       <EPaperModal
         isOpen={isEPaperOpen}
@@ -343,7 +523,7 @@ export default function App() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        articles={ARTICLES}
+        articles={articles}
         language={language}
         onSelectArticle={setSelectedArticle}
       />

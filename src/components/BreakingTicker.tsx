@@ -1,36 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { BREAKING_NEWS } from '../data/newsData';
-import { Language } from '../types';
+import { Language, BreakingNewsItem } from '../types';
 
 interface BreakingTickerProps {
   language: Language;
   onSelectBreaking: (title: string) => void;
+  breakingNews?: BreakingNewsItem[];
 }
 
 export const BreakingTicker: React.FC<BreakingTickerProps> = ({
   language,
   onSelectBreaking,
+  breakingNews = BREAKING_NEWS,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
+  const activeNews = breakingNews.length > 0 ? breakingNews : BREAKING_NEWS;
+
   useEffect(() => {
     if (isPaused) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % BREAKING_NEWS.length);
+      setCurrentIndex((prev) => (prev + 1) % activeNews.length);
     }, 4500);
     return () => clearInterval(timer);
-  }, [isPaused]);
+  }, [isPaused, activeNews.length]);
 
-  const currentItem = BREAKING_NEWS[currentIndex];
+  const currentItem = activeNews[currentIndex % activeNews.length] || activeNews[0];
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + BREAKING_NEWS.length) % BREAKING_NEWS.length);
+    setCurrentIndex((prev) => (prev - 1 + activeNews.length) % activeNews.length);
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % BREAKING_NEWS.length);
+    setCurrentIndex((prev) => (prev + 1) % activeNews.length);
   };
 
   return (
@@ -81,7 +85,7 @@ export const BreakingTicker: React.FC<BreakingTickerProps> = ({
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <span className="text-[11px] font-mono text-stone-400 px-1 tabular-nums">
-            {currentIndex + 1}/{BREAKING_NEWS.length}
+            {currentIndex + 1}/{activeNews.length}
           </span>
           <button
             onClick={handleNext}

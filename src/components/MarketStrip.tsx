@@ -1,13 +1,17 @@
 import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { MARKET_DATA } from '../data/newsData';
-import { Language } from '../types';
+import { Language, MarketTickerItem } from '../types';
 
 interface MarketStripProps {
   language: Language;
+  marketData?: MarketTickerItem[];
 }
 
-export const MarketStrip: React.FC<MarketStripProps> = ({ language }) => {
+export const MarketStrip: React.FC<MarketStripProps> = ({ 
+  language,
+  marketData = MARKET_DATA,
+}) => {
   return (
     <div className="bg-[#F5F2EB] border-b border-stone-200 text-xs py-1.5 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
@@ -17,7 +21,7 @@ export const MarketStrip: React.FC<MarketStripProps> = ({ language }) => {
         </div>
 
         <div className="flex items-center gap-6 shrink-0">
-          {MARKET_DATA.map((item) => (
+          {marketData.map((item) => (
             <div key={item.symbol} className="flex items-center gap-2 whitespace-nowrap">
               <span className="font-medium text-stone-600">
                 {language === 'bn' ? item.nameBn : item.nameEn}:
