@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Mail, AlertTriangle, X, KeyRound, CheckCircle } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  Lock, 
+  User, 
+  AlertTriangle, 
+  X, 
+  KeyRound, 
+  CheckCircle,
+  Eye,
+  EyeOff,
+  ArrowRight
+} from 'lucide-react';
 import { Language } from '../types';
 
 export const AUTHORIZED_ADMIN_EMAIL = 'mdfazlulkabirmoin@gmail.com';
@@ -18,35 +29,53 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onLoginSuccess,
   language,
 }) => {
-  const [email, setEmail] = useState(AUTHORIZED_ADMIN_EMAIL);
-  const [pin, setPin] = useState('');
+  const [loginMode, setLoginMode] = useState<'password' | 'google'>('password');
+  const [usernameOrEmail, setUsernameOrEmail] = useState(AUTHORIZED_ADMIN_EMAIL);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Google account selector state
+  const [showGoogleChooser, setShowGoogleChooser] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
+  const [isEnteringCustomGoogle, setIsEnteringCustomGoogle] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Username & Password handler
+  const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const input = usernameOrEmail.trim().toLowerCase();
+    const authorized = AUTHORIZED_ADMIN_EMAIL.toLowerCase();
 
-    // STRICT CHECK: Only mdfazlulkabirmoin@gmail.com can log in!
-    if (normalizedEmail !== AUTHORIZED_ADMIN_EMAIL.toLowerCase()) {
+    // Valid usernames/emails for the super admin
+    const isValidIdentity = 
+      input === authorized || 
+      input === 'admin' || 
+      input === 'mdfazlulkabirmoin' ||
+      input === 'fazlul';
+
+    if (!isValidIdentity) {
       setErrorMessage(
         language === 'bn'
-          ? `অননুমোদিত ইমেইল! শুধুমাত্র প্রধান সম্পাদক ও অ্যাডমিন (${AUTHORIZED_ADMIN_EMAIL}) এই প্যানেলে প্রবেশ করতে পারেন।`
-          : `Unauthorized email! Only administrator (${AUTHORIZED_ADMIN_EMAIL}) can access this panel.`
+          ? `অননুমোদিত ইউজারনেম বা ইমেইল! শুধুমাত্র সুপার অ্যাডমিন (${AUTHORIZED_ADMIN_EMAIL}) এই প্যানেলে প্রবেশ করতে পারবেন।`
+          : `Unauthorized user! Only Super Admin (${AUTHORIZED_ADMIN_EMAIL}) has access.`
       );
       return;
     }
 
-    // Check PIN from localStorage or fallback
-    const savedPin = localStorage.getItem('ittefaq_admin_pin') || DEFAULT_ADMIN_PIN;
-    if (pin.trim() !== savedPin) {
+    // Check Password from localStorage or fallback
+    const savedPassword = localStorage.getItem('ittefaq_admin_password') || 
+                          localStorage.getItem('ittefaq_admin_pin') || 
+                          DEFAULT_ADMIN_PIN;
+
+    if (password.trim() !== savedPassword) {
       setErrorMessage(
         language === 'bn'
-          ? 'ভুল অ্যাডমিন পিন! ডিফল্ট পিন "1953" ব্যবহার করুন অথবা সেটিংস থেকে পরিবর্তন করুন।'
-          : 'Invalid admin PIN! Use default PIN "1953" or change in settings.'
+          ? 'ভুল পাসওয়ার্ড! ডিফল্ট পাসওয়ার্ড "1953" ব্যবহার করুন অথবা সেটিংস থেকে পরিবর্তন করুন।'
+          : 'Invalid password! Use default "1953" or your updated password.'
       );
       return;
     }
@@ -56,22 +85,43 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
     onClose();
   };
 
+  // Google Login handler
+  const handleGoogleLogin = (selectedEmail: string) => {
+    setErrorMessage(null);
+    const normalized = selectedEmail.trim().toLowerCase();
+
+    if (normalized !== AUTHORIZED_ADMIN_EMAIL.toLowerCase()) {
+      setErrorMessage(
+        language === 'bn'
+          ? `অননুমোদিত গুগল অ্যাকাউন্ট (${selectedEmail})! শুধুমাত্র ${AUTHORIZED_ADMIN_EMAIL} সুপার অ্যাডমিন হিসেবে প্রবেশ করতে পারেন।`
+          : `Unauthorized Google account (${selectedEmail})! Only ${AUTHORIZED_ADMIN_EMAIL} is designated as Super Admin.`
+      );
+      setShowGoogleChooser(false);
+      return;
+    }
+
+    // Success with Google
+    onLoginSuccess(AUTHORIZED_ADMIN_EMAIL);
+    setShowGoogleChooser(false);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-[#FAF8F5] w-full max-w-md rounded-lg shadow-2xl border border-stone-300 overflow-hidden">
+      <div className="bg-[#FAF8F5] w-full max-w-md rounded-lg shadow-2xl border border-stone-300 overflow-hidden relative">
         
         {/* Header */}
         <div className="bg-[#1C1917] text-white p-5 flex items-center justify-between border-b-2 border-[#C1121F]">
           <div className="flex items-center gap-3">
-            <span className="p-2 bg-[#C1121F] rounded text-white">
+            <span className="p-2 bg-[#C1121F] rounded text-white shadow-2xs">
               <ShieldCheck className="w-5 h-5" />
             </span>
             <div>
               <h3 className="font-serif font-bold text-base text-white">
-                {language === 'bn' ? 'দৈনিক ইত্তেফাক কেন্দ্রীয় প্রশাসন' : 'Daily Ittefaq Admin Portal'}
+                {language === 'bn' ? 'দৈনিক ইত্তেফাক বার্তাকক্ষ প্রশাসন' : 'Daily Ittefaq Newsroom CMS'}
               </h3>
-              <p className="text-[11px] text-stone-400">
-                {language === 'bn' ? 'শুধুমাত্র অনুমোদিত প্রধান সম্পাদকের জন্য' : 'Restricted to Chief Editor & Admin'}
+              <p className="text-[11px] text-amber-300 font-mono">
+                সুপার অ্যাডমিন: <strong className="text-white">{AUTHORIZED_ADMIN_EMAIL}</strong>
               </p>
             </div>
           </div>
@@ -84,20 +134,15 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Modal Body */}
+        <div className="p-6 space-y-4">
           
-          {/* Authorization Notice */}
-          <div className="p-3 bg-amber-50 rounded border border-amber-200 text-xs text-amber-900 font-serif space-y-1">
-            <div className="flex items-center gap-1.5 font-bold text-amber-800">
-              <Lock className="w-3.5 h-3.5 text-[#C1121F]" />
-              <span>{language === 'bn' ? 'সংরক্ষিত অ্যাক্সেস নিয়ন্ত্রণ' : 'Exclusive Access Control'}</span>
-            </div>
-            <p className="text-[11px] leading-relaxed text-amber-950">
-              {language === 'bn'
-                ? `এই প্যানেলটি কেবল মাত্র ${AUTHORIZED_ADMIN_EMAIL} এর জন্য সুরক্ষিত। অন্য কোনো ব্যবহারকারী এই প্যানেলে প্রবেশ করতে পারবেন না।`
-                : `This control center is strictly restricted to ${AUTHORIZED_ADMIN_EMAIL}. Unauthorized attempts are blocked.`}
-            </p>
+          {/* Quick URL shortcut info */}
+          <div className="p-2.5 bg-stone-100 rounded border border-stone-200 text-[11px] text-stone-600 font-serif flex items-center justify-between">
+            <span>
+              {language === 'bn' ? 'ইউআরএল শর্টকাট:' : 'URL Shortcut:'} <code className="bg-white px-1.5 py-0.5 rounded font-mono text-[#C1121F] font-bold">#admin</code>
+            </span>
+            <span className="text-stone-400">ডোমেইনের শেষে সরাসরি কাজ করে</span>
           </div>
 
           {/* Error Message */}
@@ -108,72 +153,235 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </div>
           )}
 
-          {/* Email Input */}
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-stone-700 font-serif">
-              {language === 'bn' ? 'অনুমোদিত অ্যাডমিন ইমেইল' : 'Authorized Admin Email'}
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-3 pointer-events-none" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="mdfazlulkabirmoin@gmail.com"
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded border border-stone-300 bg-white focus:outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]"
-              />
-            </div>
-            <span className="text-[10px] text-stone-500 font-mono">
-              অনুমোদিত: {AUTHORIZED_ADMIN_EMAIL}
-            </span>
-          </div>
-
-          {/* PIN Input */}
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-stone-700 font-serif">
-              {language === 'bn' ? 'অ্যাডমিন গোপন পিন (Security PIN)' : 'Admin Security PIN'}
-            </label>
-            <div className="relative">
-              <KeyRound className="w-4 h-4 text-stone-400 absolute left-3 top-3 pointer-events-none" />
-              <input
-                type="password"
-                required
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="••••"
-                className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded border border-stone-300 bg-white focus:outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F] font-mono tracking-widest"
-              />
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-stone-500 font-serif">
-              <span>{language === 'bn' ? 'ডিফল্ট পিন: 1953' : 'Default PIN: 1953'}</span>
-              <button
-                type="button"
-                onClick={() => setPin(DEFAULT_ADMIN_PIN)}
-                className="text-[#C1121F] hover:underline cursor-pointer"
-              >
-                {language === 'bn' ? 'ডিফল্ট পিন বসান' : 'Fill default'}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit */}
-          <div className="pt-2">
+          {/* 1. GOOGLE SIGN IN BUTTON */}
+          <div className="space-y-2">
             <button
-              type="submit"
-              className="w-full py-2.5 bg-[#C1121F] hover:bg-[#a10e1a] text-white rounded font-bold text-xs uppercase tracking-wider transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+              type="button"
+              onClick={() => setShowGoogleChooser(true)}
+              className="w-full py-2.5 px-4 bg-white hover:bg-stone-50 text-stone-800 rounded border border-stone-300 font-medium text-xs sm:text-sm transition-all shadow-2xs flex items-center justify-center gap-3 cursor-pointer group"
             >
-              <ShieldCheck className="w-4 h-4" />
-              <span>{language === 'bn' ? 'অ্যাডমিন প্যানেলে প্রবেশ করুন' : 'Authenticate & Enter Admin'}</span>
+              {/* Google Multicolored SVG Logo */}
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                />
+              </svg>
+              <span className="font-sans font-semibold">
+                {language === 'bn' ? 'Google দিয়ে সরাসরি লগইন করুন' : 'Sign in with Google'}
+              </span>
             </button>
           </div>
 
-        </form>
+          {/* Divider */}
+          <div className="flex items-center gap-3 text-stone-400 text-xs font-serif">
+            <div className="flex-1 h-px bg-stone-300" />
+            <span>{language === 'bn' ? 'অথবা পাসওয়ার্ড দিয়ে' : 'or with username & password'}</span>
+            <div className="flex-1 h-px bg-stone-300" />
+          </div>
+
+          {/* 2. USERNAME & PASSWORD FORM */}
+          <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
+            {/* Username or Email Input */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-stone-700 font-serif">
+                {language === 'bn' ? 'ইউজারনেম অথবা ইমেইল' : 'Username or Email'}
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-stone-400 absolute left-3 top-2.5 pointer-events-none" />
+                <input
+                  type="text"
+                  required
+                  value={usernameOrEmail}
+                  onChange={(e) => setUsernameOrEmail(e.target.value)}
+                  placeholder="mdfazlulkabirmoin@gmail.com বা admin"
+                  className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded border border-stone-300 bg-white focus:outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]"
+                />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-stone-700 font-serif">
+                {language === 'bn' ? 'অ্যাডমিন পাসওয়ার্ড (Password)' : 'Admin Password'}
+              </label>
+              <div className="relative">
+                <KeyRound className="w-4 h-4 text-stone-400 absolute left-3 top-2.5 pointer-events-none" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="পাসওয়ার্ড লিখুন..."
+                  className="w-full pl-9 pr-10 py-2 text-xs sm:text-sm rounded border border-stone-300 bg-white focus:outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F] font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-2.5 text-stone-400 hover:text-stone-700 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-stone-500 font-serif pt-0.5">
+                <span>{language === 'bn' ? 'ডিফল্ট পাসওয়ার্ড: 1953' : 'Default Password: 1953'}</span>
+                <button
+                  type="button"
+                  onClick={() => setPassword(DEFAULT_ADMIN_PIN)}
+                  className="text-[#C1121F] hover:underline cursor-pointer font-semibold"
+                >
+                  {language === 'bn' ? '1953 বসান' : 'Fill default'}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#C1121F] hover:bg-[#a10e1a] text-white rounded font-bold text-xs uppercase tracking-wider transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>{language === 'bn' ? 'লগইন করুন ও CMS খুলুন' : 'Login & Open CMS'}</span>
+              </button>
+            </div>
+          </form>
+
+        </div>
 
         {/* Footer info */}
-        <div className="p-3 bg-stone-100 border-t border-stone-200 text-center text-[10px] text-stone-500 font-serif">
-          © দৈনিক ইত্তেফাক ডিজিটাল নিউজরুম কন্টেন্ট ম্যানেজমেন্ট সিস্টেম (CMS)
+        <div className="p-3 bg-stone-100 border-t border-stone-200 text-center text-[11px] text-stone-500 font-serif">
+          © দৈনিক ইত্তেফাক ডিজিটাল নিউজরুম কন্টেন্ট ম্যানেজমেন্ট সিস্টেম
         </div>
+
+        {/* GOOGLE ACCOUNT CHOOSER MODAL POPUP */}
+        {showGoogleChooser && (
+          <div className="absolute inset-0 z-20 bg-stone-950/80 backdrop-blur-2xs flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-sm rounded-lg shadow-2xl border border-stone-300 p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                    />
+                  </svg>
+                  <h4 className="font-sans font-bold text-stone-900 text-sm">
+                    {language === 'bn' ? 'Google দিয়ে সাইন ইন' : 'Sign in with Google'}
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowGoogleChooser(false);
+                    setIsEnteringCustomGoogle(false);
+                  }}
+                  className="text-stone-400 hover:text-stone-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-stone-600 font-serif">
+                {language === 'bn' 
+                  ? 'দৈনিক ইত্তেফাক বার্তাকক্ষে প্রবেশ করতে আপনার অনুমোদিত গুগল অ্যাকাউন্ট নির্বাচন করুন:' 
+                  : 'Choose your authorized Google Account to continue to Daily Ittefaq CMS:'}
+              </p>
+
+              {/* Authorized Super Admin Account Card */}
+              <button
+                type="button"
+                onClick={() => handleGoogleLogin(AUTHORIZED_ADMIN_EMAIL)}
+                className="w-full p-3 rounded-lg border-2 border-emerald-500 bg-emerald-50/60 hover:bg-emerald-50 transition-all text-left flex items-center justify-between cursor-pointer group shadow-2xs"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-stone-900 text-amber-300 flex items-center justify-center font-bold text-sm">
+                    FK
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs sm:text-sm text-stone-900 flex items-center gap-1.5">
+                      <span>Md Fazlul Kabir Moin</span>
+                      <span className="bg-emerald-700 text-white text-[9px] px-1.5 py-0.2 rounded font-mono">
+                        Super Admin
+                      </span>
+                    </p>
+                    <p className="text-[11px] text-stone-600 font-mono">
+                      {AUTHORIZED_ADMIN_EMAIL}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-emerald-700 group-hover:translate-x-1 transition-transform" />
+              </button>
+
+              {/* Alternate custom account tester */}
+              {!isEnteringCustomGoogle ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEnteringCustomGoogle(true)}
+                  className="text-xs text-stone-500 hover:text-stone-800 hover:underline cursor-pointer block text-center w-full pt-1"
+                >
+                  {language === 'bn' ? '+ অন্য একটি গুগল অ্যাকাউন্ট ব্যবহার করুন' : '+ Use another account'}
+                </button>
+              ) : (
+                <div className="p-3 bg-stone-50 rounded border border-stone-200 space-y-2">
+                  <input
+                    type="email"
+                    placeholder="example@gmail.com"
+                    value={customGoogleEmail}
+                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-xs rounded border border-stone-300 bg-white"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEnteringCustomGoogle(false)}
+                      className="px-2 py-1 text-[11px] text-stone-500"
+                    >
+                      বাতিল
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGoogleLogin(customGoogleEmail)}
+                      className="px-3 py-1 bg-stone-900 text-white text-[11px] font-bold rounded"
+                    >
+                      সাইন ইন চেষ্টা করুন
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-[10px] text-stone-400 text-center font-serif">
+                নিরাপত্তা নীতি: শুধুমাত্র {AUTHORIZED_ADMIN_EMAIL} সুপার অ্যাডমিন অধিকার প্রাপ্ত।
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

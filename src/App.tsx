@@ -146,6 +146,38 @@ export default function App() {
     }
   }, [savedArticleIds]);
 
+  // URL Hash / Path detection for #admin or /admin to launch CMS
+  useEffect(() => {
+    const handleUrlHash = () => {
+      const hash = window.location.hash.toLowerCase();
+      const path = window.location.pathname.toLowerCase();
+      
+      if (
+        hash === '#admin' || 
+        hash === '#cms' || 
+        hash.startsWith('#admin') || 
+        path === '/admin' || 
+        path === '/cms'
+      ) {
+        if (adminEmail) {
+          setIsAdminPanelOpen(true);
+          setIsAdminLoginOpen(false);
+        } else {
+          setIsAdminLoginOpen(true);
+          setIsAdminPanelOpen(false);
+        }
+      }
+    };
+
+    handleUrlHash();
+    window.addEventListener('hashchange', handleUrlHash);
+    window.addEventListener('popstate', handleUrlHash);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlHash);
+      window.removeEventListener('popstate', handleUrlHash);
+    };
+  }, [adminEmail]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -214,7 +246,13 @@ export default function App() {
       console.warn('LocalStorage error', e);
     }
     setIsAdminPanelOpen(true);
-    showToast(language === 'bn' ? 'স্বাগতম প্রধান সম্পাদক! অ্যাডমিন প্যানেল সক্রিয় হয়েছে।' : 'Welcome Chief Editor! Admin portal activated.');
+    setIsAdminLoginOpen(false);
+    window.location.hash = 'admin';
+    showToast(
+      language === 'bn' 
+        ? 'স্বাগতম প্রধান সম্পাদক! সুপার অ্যাডমিন পোর্টাল সক্রিয় হয়েছে।' 
+        : 'Welcome Chief Editor! Super Admin portal activated.'
+    );
   };
 
   const handleAdminLogout = () => {
@@ -225,7 +263,25 @@ export default function App() {
       console.warn('LocalStorage error', e);
     }
     setIsAdminPanelOpen(false);
+    setIsAdminLoginOpen(false);
+    if (window.location.hash.toLowerCase().includes('admin') || window.location.hash.toLowerCase().includes('cms')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     showToast(language === 'bn' ? 'অ্যাডমিন সেশন সমাপ্ত হয়েছে।' : 'Logged out from admin.');
+  };
+
+  const handleCloseAdminLogin = () => {
+    setIsAdminLoginOpen(false);
+    if (window.location.hash.toLowerCase().includes('admin') || window.location.hash.toLowerCase().includes('cms')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  };
+
+  const handleCloseAdminPanel = () => {
+    setIsAdminPanelOpen(false);
+    if (window.location.hash.toLowerCase().includes('admin') || window.location.hash.toLowerCase().includes('cms')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
   };
 
   const handleToggleBookmark = (id: string) => {
@@ -299,6 +355,7 @@ export default function App() {
         savedCount={savedArticleIds.size}
         adminEmail={adminEmail}
         onOpenAdmin={() => {
+          window.location.hash = 'admin';
           if (adminEmail) {
             setIsAdminPanelOpen(true);
           } else {
@@ -465,7 +522,7 @@ export default function App() {
       {/* Dedicated Admin Login Modal (Restricted to mdfazlulkabirmoin@gmail.com) */}
       <AdminLoginModal
         isOpen={isAdminLoginOpen}
-        onClose={() => setIsAdminLoginOpen(false)}
+        onClose={handleCloseAdminLogin}
         onLoginSuccess={handleAdminLoginSuccess}
         language={language}
       />
@@ -473,7 +530,7 @@ export default function App() {
       {/* Full Admin Panel / CMS Modal */}
       <AdminPanelModal
         isOpen={isAdminPanelOpen}
-        onClose={() => setIsAdminPanelOpen(false)}
+        onClose={handleCloseAdminPanel}
         language={language}
         articles={articles}
         onSaveArticles={handleSaveArticles}

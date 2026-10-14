@@ -365,9 +365,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
       return;
     }
     localStorage.setItem('ittefaq_admin_pin', newPin.trim());
+    localStorage.setItem('ittefaq_admin_password', newPin.trim());
     setPinChangeSuccess(true);
     setNewPin('');
-    showNotice('অ্যাডমিন পিন সফলভাবে পরিবর্তন করা হয়েছে!');
+    showNotice('অ্যাডমিন পাসওয়ার্ড/পিন সফলভাবে পরিবর্তন করা হয়েছে!');
     setTimeout(() => setPinChangeSuccess(false), 3000);
   };
 
