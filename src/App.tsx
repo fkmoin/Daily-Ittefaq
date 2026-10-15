@@ -45,7 +45,9 @@ import {
 } from './components/Footer';
 import { 
   AdminLoginModal,
-  AUTHORIZED_ADMIN_EMAIL 
+  AUTHORIZED_ADMIN_EMAIL,
+  isValidAdminSession,
+  createAdminAuthToken
 } from './components/AdminLoginModal';
 import { 
   AdminPanelModal 
@@ -87,11 +89,16 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
 
-  // Admin Portal & Security State (Restricted to mdfazlulkabirmoin@gmail.com)
+  // Admin Portal & Security State (Restricted strictly to mdfazlulkabirmoin@gmail.com with verified token)
   const [adminEmail, setAdminEmail] = useState<string | null>(() => {
     try {
-      const stored = localStorage.getItem('ittefaq_admin_user');
-      return stored && stored.toLowerCase() === AUTHORIZED_ADMIN_EMAIL.toLowerCase() ? stored : null;
+      if (isValidAdminSession()) {
+        return AUTHORIZED_ADMIN_EMAIL;
+      }
+      // Purge any unverified or stale admin user state from previous sessions
+      localStorage.removeItem('ittefaq_admin_user');
+      localStorage.removeItem('ittefaq_admin_auth_token');
+      return null;
     } catch {
       return null;
     }
@@ -99,7 +106,7 @@ export default function App() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
-  // Sync with Firebase Auth state
+  // Sync with Firebase Auth state strictly for AUTHORIZED_ADMIN_EMAIL
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.email) {
@@ -107,6 +114,15 @@ export default function App() {
           setAdminEmail(user.email);
           try {
             localStorage.setItem('ittefaq_admin_user', user.email);
+            localStorage.setItem('ittefaq_admin_auth_token', createAdminAuthToken(user.email));
+          } catch {}
+        } else {
+          // If non-admin user logs in through Firebase, reject admin privileges immediately
+          logoutFirebase().catch(() => {});
+          setAdminEmail(null);
+          try {
+            localStorage.removeItem('ittefaq_admin_user');
+            localStorage.removeItem('ittefaq_admin_auth_token');
           } catch {}
         }
       }
@@ -274,6 +290,7 @@ export default function App() {
     setAdminEmail(email);
     try {
       localStorage.setItem('ittefaq_admin_user', email);
+      localStorage.setItem('ittefaq_admin_auth_token', createAdminAuthToken(email));
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
@@ -292,6 +309,7 @@ export default function App() {
     logoutFirebase().catch(() => {});
     try {
       localStorage.removeItem('ittefaq_admin_user');
+      localStorage.removeItem('ittefaq_admin_auth_token');
     } catch (e) {
       console.warn('LocalStorage error', e);
     }

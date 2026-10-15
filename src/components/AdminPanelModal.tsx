@@ -1167,30 +1167,30 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 </div>
               </div>
 
-              {/* Change PIN */}
+              {/* Change Password */}
               <div className="bg-white p-5 rounded border border-stone-300 shadow-2xs space-y-3">
                 <h4 className="font-serif font-bold text-sm text-stone-800 pb-2 border-b border-stone-200">
-                  অ্যাডমিন পিন পরিবর্তন (Change Security PIN)
+                  অ্যাডমিন পাসওয়ার্ড পরিবর্তন (Change Admin Master Password)
                 </h4>
 
                 {pinChangeSuccess && (
                   <div className="p-2.5 bg-emerald-100 text-emerald-800 text-xs rounded font-serif">
-                    ✓ নতুন পিন সফলভাবে সংরক্ষিত হয়েছে!
+                    ✓ নতুন অ্যাডমিন পাসওয়ার্ড সফলভাবে সংরক্ষিত হয়েছে!
                   </div>
                 )}
 
                 <form onSubmit={handleSavePin} className="space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-stone-700 font-serif mb-1">
-                      নতুন গোপন পিন (কমপক্ষে ৪ সংখ্যা)
+                      নতুন গোপন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)
                     </label>
                     <input
-                      type="password"
+                      type="text"
                       required
-                      placeholder="যেমন: 2026"
+                      placeholder="নতুন পাসওয়ার্ড দিন..."
                       value={newPin}
                       onChange={(e) => setNewPin(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded border border-stone-300 font-mono tracking-widest focus:border-[#C1121F] focus:outline-none"
+                      className="w-full px-3 py-2 text-xs rounded border border-stone-300 font-mono tracking-wider focus:border-[#C1121F] focus:outline-none"
                     />
                   </div>
 
@@ -1198,7 +1198,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     type="submit"
                     className="px-4 py-2 bg-[#1C1917] hover:bg-stone-800 text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
-                    পিন আপডেট করুন
+                    পাসওয়ার্ড আপডেট করুন
                   </button>
                 </form>
               </div>
