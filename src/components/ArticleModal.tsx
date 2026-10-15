@@ -264,6 +264,9 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({
                 src={article.imageUrl}
                 alt={article.title}
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                }}
                 className="w-full h-auto max-h-[460px] object-cover"
               />
               <div className="p-3 bg-stone-100 border-t border-stone-200 text-xs italic font-serif text-stone-700">

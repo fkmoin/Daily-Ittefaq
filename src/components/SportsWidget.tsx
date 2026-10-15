@@ -100,6 +100,9 @@ export const SportsWidget: React.FC<SportsWidgetProps> = ({
               src={mainSports.imageUrl}
               alt={mainSports.title}
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = '/images/cricket_match_action_1791785189371.jpg';
+              }}
               className="w-full h-56 md:h-full object-cover group-hover:scale-103 transition-transform duration-500"
             />
           </div>

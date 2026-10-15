@@ -78,6 +78,9 @@ export const DistrictNewsSection: React.FC<DistrictNewsSectionProps> = ({
                     src={article.imageUrl}
                     alt={article.title}
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                    }}
                     className="w-full h-40 object-cover group-hover:scale-103 transition-transform duration-300"
                   />
                 </div>

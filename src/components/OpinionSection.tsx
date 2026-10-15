@@ -65,6 +65,9 @@ export const OpinionSection: React.FC<OpinionSectionProps> = ({
                   src={leadOpinion.imageUrl}
                   alt="ইত্তেফাক আর্কাইভ"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/images/editorial_manik_archive_1791785203555.jpg';
+                  }}
                   className="w-full h-56 sm:h-64 object-cover sepia-[0.15] group-hover:scale-102 transition-transform duration-500"
                 />
                 <div className="p-2 bg-stone-100 text-[11px] text-stone-600 italic font-serif border-t border-stone-200">

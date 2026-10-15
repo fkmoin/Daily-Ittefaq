@@ -155,6 +155,9 @@ export const EPaperModal: React.FC<EPaperModalProps> = ({
                   <img
                     src={page.imageUrl}
                     alt={page.nameBn}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                    }}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -192,6 +195,9 @@ export const EPaperModal: React.FC<EPaperModalProps> = ({
                 <img
                   src={currentPage.imageUrl}
                   alt={currentPage.nameBn}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                  }}
                   className="w-full h-auto object-cover max-h-[520px]"
                 />
 

@@ -79,6 +79,9 @@ export const LeadStoriesSection: React.FC<LeadStoriesSectionProps> = ({
                 src={leadArticle.imageUrl}
                 alt={leadArticle.title}
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                }}
                 className="w-full h-[280px] sm:h-[360px] md:h-[400px] object-cover transition-transform duration-500 group-hover:scale-102"
               />
               <div className="p-2.5 bg-stone-900/85 text-stone-300 text-xs italic font-serif flex items-center justify-between">
@@ -137,6 +140,9 @@ export const LeadStoriesSection: React.FC<LeadStoriesSectionProps> = ({
                       src={article.imageUrl}
                       alt={article.title}
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = '/images/dhaka_metro_transit_1791785176659.jpg';
+                      }}
                       className="w-full h-44 object-cover transition-transform duration-300 group-hover:scale-103"
                     />
                   </div>

@@ -50,6 +50,7 @@ import {
 import { 
   AdminPanelModal 
 } from './components/AdminPanelModal';
+import { auth, onAuthStateChanged, logoutFirebase } from './firebase';
 import { 
   ARTICLES,
   BREAKING_NEWS,
@@ -68,6 +69,15 @@ import {
   ArrowRight, 
   ChevronRight 
 } from 'lucide-react';
+
+// Helper to sanitize any legacy /src/assets/images/ paths from localStorage
+const sanitizeImageUrl = (url?: string): string => {
+  if (!url) return '/images/lead_national_news_1791785161209.jpg';
+  if (url.startsWith('/src/assets/images/')) {
+    return url.replace('/src/assets/images/', '/images/');
+  }
+  return url;
+};
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('bn');
@@ -89,11 +99,33 @@ export default function App() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
+  // Sync with Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && user.email) {
+        if (user.email.toLowerCase() === AUTHORIZED_ADMIN_EMAIL.toLowerCase()) {
+          setAdminEmail(user.email);
+          try {
+            localStorage.setItem('ittefaq_admin_user', user.email);
+          } catch {}
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Dynamic CMS state persisted in localStorage
   const [articles, setArticles] = useState<Article[]>(() => {
     try {
       const stored = localStorage.getItem('ittefaq_cms_articles');
-      return stored ? JSON.parse(stored) : ARTICLES;
+      if (stored) {
+        const parsed: Article[] = JSON.parse(stored);
+        return parsed.map((a) => ({
+          ...a,
+          imageUrl: sanitizeImageUrl(a.imageUrl),
+        }));
+      }
+      return ARTICLES;
     } catch {
       return ARTICLES;
     }
@@ -257,6 +289,7 @@ export default function App() {
 
   const handleAdminLogout = () => {
     setAdminEmail(null);
+    logoutFirebase().catch(() => {});
     try {
       localStorage.removeItem('ittefaq_admin_user');
     } catch (e) {
@@ -483,6 +516,9 @@ export default function App() {
                             src={article.imageUrl}
                             alt={article.title}
                             referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                            }}
                             className="w-full h-44 object-cover group-hover:scale-103 transition-transform duration-300"
                           />
                         </div>

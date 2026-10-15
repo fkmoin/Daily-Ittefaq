@@ -84,7 +84,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   const [formDistrict, setFormDistrict] = useState('ঢাকা');
   const [formAuthor, setFormAuthor] = useState('নিজস্ব প্রতিবেদক, ঢাকা');
   const [formAuthorRole] = useState('জ্যেষ্ঠ বার্তা প্রতিবেদক');
-  const [formImageUrl, setFormImageUrl] = useState('/src/assets/images/lead_national_news_1791785161209.jpg');
+  const [formImageUrl, setFormImageUrl] = useState('/images/lead_national_news_1791785161209.jpg');
   const [formCaption, setFormCaption] = useState('সংবাদের বিশেষ স্থিরচিত্র। ছবি: ইত্তেফাক');
   const [formSummary, setFormSummary] = useState('');
   const [formSummaryEn, setFormSummaryEn] = useState('');
@@ -120,10 +120,10 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
 
   // Preset high-res images for quick picking
   const presetImages = [
-    { label: 'কূটনৈতিক/জাতীয়', url: '/src/assets/images/lead_national_news_1791785161209.jpg' },
-    { label: 'মেট্রোরেল/নগর', url: '/src/assets/images/dhaka_metro_transit_1791785176659.jpg' },
-    { label: 'খেলাধুলা/ক্রিকেট', url: '/src/assets/images/cricket_match_action_1791785189371.jpg' },
-    { label: 'আর্কাইভ/মুদ্রণ', url: '/src/assets/images/editorial_manik_archive_1791785203555.jpg' },
+    { label: 'কূটনৈতিক/জাতীয়', url: '/images/lead_national_news_1791785161209.jpg' },
+    { label: 'মেট্রোরেল/নগর', url: '/images/dhaka_metro_transit_1791785176659.jpg' },
+    { label: 'খেলাধুলা/ক্রিকেট', url: '/images/cricket_match_action_1791785189371.jpg' },
+    { label: 'আর্কাইভ/মুদ্রণ', url: '/images/editorial_manik_archive_1791785203555.jpg' },
   ];
 
   const categoryMap: { [key in CategoryKey]: { bn: string; en: string } } = {
@@ -150,7 +150,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
     setFormDivision('ঢাকা');
     setFormDistrict('ঢাকা');
     setFormAuthor('নিজস্ব প্রতিবেদক, ঢাকা');
-    setFormImageUrl('/src/assets/images/lead_national_news_1791785161209.jpg');
+    setFormImageUrl('/images/lead_national_news_1791785161209.jpg');
     setFormCaption('সংবাদের বিশেষ স্থিরচিত্র। ছবি: ইত্তেফাক');
     setFormSummary('');
     setFormSummaryEn('');
@@ -582,6 +582,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           <img
                             src={article.imageUrl}
                             alt=""
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = '/images/lead_national_news_1791785161209.jpg';
+                            }}
                             className="w-10 h-10 rounded object-cover border border-stone-200"
                           />
                         </td>
